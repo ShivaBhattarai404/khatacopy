@@ -79,7 +79,7 @@ exports.addMultipleExpenses = async (req, res, next) => {
       insertedExpenses.push(expense);
 
       req.label.expenses.push(expense._id);
-      req.label.totalExpense += +expense.amount;
+      req.label.totalExpense += expense.amount;
       await req.label.save();
     }
 

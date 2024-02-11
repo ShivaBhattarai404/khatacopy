@@ -38,11 +38,18 @@ app.use((err, req, res, next) => {
   res.status(statusCode).json({ message, data });
 });
 
+// mongoose
+//   .connect(process.env.MONGODB_URI)
+//   .then((result) => {
+//     app.listen(process.env.PORT);
+//   })
+//   .catch((err) => { 
+//     console.log(err.message);
+//     console.log("Connection to the database failed");
+//   });
+
 mongoose
   .connect(process.env.MONGODB_URI)
-  .then((result) => {
-    app.listen(process.env.PORT);
-  })
   .catch((err) => { 
     console.log(err.message);
     console.log("Connection to the database failed");

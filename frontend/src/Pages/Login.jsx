@@ -35,7 +35,6 @@ export const action = async ({ params, request: req }) => {
       return json({message: "Invalid Credientials", status: 422, data: data.data});
     }
     if(!response.ok){
-      const data = await response.json();
       return json({message: "Server Error"})
     }
     const data = await response.json();

@@ -30,6 +30,13 @@ router.put(
   ],
   expensesController.addExpense
 );
+router.put("/multiexpenses",isAuth, hasLabel, body("multipleExpenses").custom((value, {req})=>{
+  if(value?.match(/^"?(\w+)"?\((\d+)\)(,\s*"?(\w+)"?\((\d+)\))*$/)){
+    return true;
+  }else{
+    return Promise.reject("Invalid format");
+  }
+}), expensesController.addMultipleExpenses)
 router.delete("/expense", isAuth, hasLabel, expensesController.deleteExpense);
 
 router.get("/labels", isAuth, labelController.getLabels);

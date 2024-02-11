@@ -7,12 +7,15 @@ exports.getExpenses = async (req, res, next) => {
   const labelId = req.params.labelId;
   try {
     const label = await Label.findById(labelId).populate("expenses");
-    res
-      .status(200)
-      .json({
-        label: { name: label.name, budget: label.budget, id: label._id },
-        expenses: label.expenses,
-      });
+    label.expenses.sort((a, b) => {
+      const aDate = new Date(a.createdAt).getTime();
+      const bDate = new Date(b.createdAt).getTime();
+      return aDate - bDate;
+    });
+    res.status(200).json({
+      label: { name: label.name, budget: label.budget, id: label._id },
+      expenses: label.expenses,
+    });
   } catch (error) {
     error.message = "Invalid label Id";
     error.status = 400;
@@ -30,12 +33,15 @@ exports.addExpense = async (req, res, next) => {
   }
   const name = req.body.name;
   const amount = req.body.amount;
+  const date = req.body.date;
 
   const expense = new Expenses({
     name: name,
     amount: amount,
     label: req.label._id,
+    createdAt: date,
   });
+
   try {
     const uploadedExpense = await expense.save();
     req.label.expenses.push(uploadedExpense);
@@ -44,6 +50,42 @@ exports.addExpense = async (req, res, next) => {
     res
       .status(201)
       .json({ message: "Expense added", expense: uploadedExpense });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.addMultipleExpenses = async (req, res, next) => {
+  const validationErrors = validationResult(req);
+  if (!validationErrors.isEmpty()) {
+    const error = new Error("Validation Error");
+    error.status = 422;
+    error.data = validationErrors.array().map((err) => err.msg);
+    return next(error);
+  }
+
+  const expenses = req.body.multipleExpenses;
+  const createdAt = req.body.date || new Date().toISOString();
+
+  const expensesObjArr = expenses.split(",").map((item) => {
+    const [name, amount] = item.replace(")", "").split("(");
+    return new Expenses({ name: name.trim(), amount, createdAt });
+  });
+
+  try {
+    const insertedExpenses = [];
+    for (let i = 0; i < expensesObjArr.length; i++) {
+      const expense = await expensesObjArr[i].save();
+      insertedExpenses.push(expense);
+
+      req.label.expenses.push(expense._id);
+      req.label.totalExpense += +expense.amount;
+      await req.label.save();
+    }
+
+    res
+      .status(201)
+      .json({ message: "Expenses added", expense: insertedExpenses });
   } catch (error) {
     return next(error);
   }

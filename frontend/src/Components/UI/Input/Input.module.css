@@ -46,4 +46,70 @@
   color: red;
   font-size: 1.2rem;
   vertical-align: middle;
+}.inputWrapper {
+  display: block;
+  margin: 1.5rem 0;
+}
+.inputWrapper input,
+.inputWrapper textarea{
+  height: 42px;
+  -webkit-tap-highlight-color: transparent;
+  line-height: 40px;
+  appearance: none;
+  resize: none;
+  box-sizing: border-box;
+  font-size: 1rem;
+  width: 100%;
+  color: rgb(193, 194, 197);
+  display: block;
+  text-align: left;
+  min-height: 42px;
+  padding-left: 14px;
+  padding-right: 14px;
+  border-radius: 4px;
+  border: 1px solid rgb(55, 58, 64);
+  background-color: rgb(37, 38, 43);
+  transition: border-color 100ms ease 0s;
+  margin: 0.5rem auto;
+}
+.inputWrapper input.invalid,
+.inputWrapper textarea.invalid{
+  border: none;
+  outline: 1px solid rgb(255, 100, 100);
+  color: rgb(255, 100, 100);
+}
+.inputWrapper .invalidText{
+  color: rgb(255, 100, 100);
+}
+.inputWrapper input.invalid:focus,
+.inputWrapper textarea.invalid:focus{
+  outline-color: rgb(255, 100, 100);
+}
+
+.inputWrapper input::-webkit-inner-spin-button,
+.inputWrapper input::-webkit-outer-spin-button{
+  appearance: none;
+}
+.inputWrapper input:focus,
+.inputWrapper textarea:focus {
+  outline: 1px solid rgb(25, 113, 194);
+}
+.input__required{
+  color: red;
+  font-size: 1.2rem;
+  vertical-align: middle;
+}
+
+.inputWrapper .form__textarea{
+  line-height: 1.5;
+  height: auto;
+  padding: 0.5rem;
+  row-gap: 0.5rem;
+}
+
+::-webkit-calendar-picker-indicator{
+  background-color: #ffffff;
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 3px;
 }

@@ -9,7 +9,7 @@ const Label = () => {
   return (
     <LabelComponent
       expenses={data.expenses}
-      label={data.label || {name: "", id: ""}}
+      label={data.label || { name: "", id: "" }}
     />
   );
 };
@@ -18,8 +18,8 @@ export const loader = async ({ params }) => {
   const labelId = params.labelId;
   const token = localStorage.getItem("token");
 
-  if(!token){
-    return redirect("/login")
+  if (!token) {
+    return redirect("/login");
   }
   try {
     const response = await fetch(`${API_BASE_URL}/expenses/${labelId}`, {
@@ -33,7 +33,7 @@ export const loader = async ({ params }) => {
       response.status === 401 ||
       response.status === 422
     ) {
-      return redirect("/login")
+      return redirect("/login");
     }
     if (response.status === 404) {
       throw json(
@@ -67,20 +67,29 @@ export const action = async ({ params, request: req }) => {
   const formData = await req.formData();
   const name = formData.get("name");
   const amount = formData.get("amount");
+  const multipleExpenses = formData.get("multipleExpenses");
+  const date = formData.get("date");
+  const fullDate = new Date(date);
+
   const token = localStorage.getItem("token");
   const labelId = params.labelId;
-
-  if(!token){
-    return redirect("/login")
+  if (!token) {
+    return redirect("/login");
   }
   try {
-    const response = await fetch(`${API_BASE_URL}/expense`, {
+    let url = `${API_BASE_URL}/expense`;
+    let reqBody = { labelId, name, amount, date: fullDate };
+    if (multipleExpenses) {
+      url = `${API_BASE_URL}/multiexpenses`;
+      reqBody = { labelId, multipleExpenses, date: fullDate };
+    }
+    const response = await fetch(url, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token,
       },
-      body: JSON.stringify({ labelId, name, amount }),
+      body: JSON.stringify(reqBody),
     });
     if (response.status === 401 || response.status === 400) {
       throw json(

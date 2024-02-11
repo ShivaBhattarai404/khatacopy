@@ -4,6 +4,7 @@ import { useNavigate, useSubmit } from "react-router-dom";
 import { IoAddCircleOutline } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
 import { MdEdit } from "react-icons/md";
+import { GrMultiple } from "react-icons/gr";
 
 import classes from "./Label.module.css";
 
@@ -38,6 +39,14 @@ const initialState = {
     invalidText: null,
     touched: false,
   },
+  date: {
+    value: formatDate(new Date(), "yy-mm-dd"),
+  },
+  multiExpenses: {
+    value: "",
+    invalidText: null,
+    touched: false,
+  },
 };
 const reducer = (state, { type, payload }) => {
   let invalidText;
@@ -51,6 +60,21 @@ const reducer = (state, { type, payload }) => {
         ...state,
         amount: { value: +payload, invalidText, touched: true },
       };
+    case "date":
+      return {
+        ...state,
+        date: { value: payload },
+      };
+    case "multiExpenses":
+      invalidText =
+        payload &&
+        payload.match(/^"?(\w+)"?\((\d+)\)(,\s*"?(\w+)"?\((\d+)\))*$/)
+          ? null
+          : "Enter in correct format";
+      return {
+        ...state,
+        multiExpenses: { value: payload, invalidText, touched: true },
+      };
     case "reset":
       return initialState;
     default:
@@ -61,7 +85,10 @@ const reducer = (state, { type, payload }) => {
 const Label = (props) => {
   const [transactions, setTransactions] = useState([]);
   const [displayModal, setDisplayModal] = useState(false);
-  const [displayAddExpenseModal, setDisplayAddExpenseModal] = useState(false);
+  const [addExpenseModal, setAddExpenseModal] = useState({
+    display: false,
+    mode: "single",
+  });
   const [modalData, setModalData] = useState({});
   const [errors, setErrors] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ status: false, data: {} });
@@ -70,7 +97,7 @@ const Label = (props) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const totalExpenseAmount = transactions.reduce(
-    (amount, expense) => amount + expense.amount,
+    (amount, expense) => amount + +expense.amount,
     0
   );
 
@@ -118,30 +145,37 @@ const Label = (props) => {
     setModalData({});
   };
   const addBtnClickHandler = () => {
-    setDisplayAddExpenseModal(true);
+    setAddExpenseModal((prevModal) => ({ ...prevModal, display: true }));
   };
-  const addExpenseHandler = (e) => {
-    if (!state.name.value && state.amount.value <= 0) {
+  const addSingleExpenseHandler = (e) => {
+    if (addExpenseModal.mode === "single" && !state.name.value && state.amount.value <= 0) {
       setErrors({
         message:
           "1. Expense name should not be empty & 2. Expense amount should be greater than zero",
       });
-    } else if (!state.name.value) {
+    } else if (addExpenseModal.mode === "single" && !state.name.value) {
       setErrors({ message: "1. Expense name should not be empty" });
-    } else if (state.amount.value <= 0) {
+    } else if (addExpenseModal.mode === "single" && state.amount.value <= 0) {
       setErrors({ message: "1. Expense amount should be greater than zero" });
-    }else{
+    }else if(addExpenseModal.mode === "multiple" && state.multiExpenses.invalidText){
+      setErrors({ message: state.multiExpenses.invalidText });
+    }
+    else {
       const formData = new FormData();
       formData.append("name", state.name.value);
       formData.append("amount", state.amount.value);
-      submit(formData, {method: "PUT", action: "/label/"+props.label.id})
-      dispatch({type: "reset"})
-      setDisplayAddExpenseModal(false);
+      formData.append("date", state.date.value);
+      formData.append("multipleExpenses", state.multiExpenses.value)
+      submit(formData, { method: "PUT", action: "/label/" + props.label.id });
+      dispatch({ type: "reset" });
+
+      setAddExpenseModal((prevModal) => ({ ...prevModal, display: false }));
     }
   };
   const addExpenseCanceler = () => {
-    dispatch({type: "reset"})
-    setDisplayAddExpenseModal(false);
+    dispatch({ type: "reset" });
+
+    setAddExpenseModal((prevModal) => ({ ...prevModal, display: false }));
   };
 
   // Function for deleting label
@@ -187,9 +221,18 @@ const Label = (props) => {
       });
     setDeleteModal({ status: false, data: {} });
   };
+
+  const addExpenseModeHandler = () => {
+    setAddExpenseModal((prevModal) => {
+      const mode = prevModal.mode === "single" ? "multiple" : "single";
+      return { ...prevModal, mode: mode };
+    });
+    dispatch({ type: "reset" });
+  };
+
   return (
     <section className={classes.section}>
-      {/* Modals start */}
+      {/* MODALS STARTS FROM HERE */}
       {displayModal && (
         <Modal
           title="Transaction Details"
@@ -236,40 +279,85 @@ const Label = (props) => {
           </ul>
         </Modal>
       )}
-      {displayAddExpenseModal && (
+      {addExpenseModal.display && (
         <Modal
           title="Add an Expense"
           confirmText="Save"
           submitable={true}
-          onConfirm={addExpenseHandler}
+          onConfirm={addSingleExpenseHandler}
           onCancel={addExpenseCanceler}
         >
+          <div
+            className={`${classes.addExpenseModal__addMoreBtn} ${
+              addExpenseModal.mode === "multiple" ? classes.active : ""
+            }`}
+            onClick={addExpenseModeHandler}
+          >
+            <span>
+              <GrMultiple />
+            </span>
+            <span>{addExpenseModal.mode}</span>
+          </div>
+          {addExpenseModal.mode === "single" ? (
+            <>
+              <Input
+                name="name"
+                title="Name"
+                required="true"
+                value={state.name.value}
+                invalid={state.name.invalidText && state.name.touched}
+                invalidText={state.name.invalidText}
+                onChange={(e) =>
+                  dispatch({ type: "name", payload: e.target.value })
+                }
+                onBlur={(e) =>
+                  dispatch({ type: "name", payload: e.target.value })
+                }
+              />
+              <Input
+                name="amount"
+                type="number"
+                step="0.01"
+                title="Amount"
+                required="true"
+                value={state.amount.value}
+                invalid={state.amount.invalidText && state.amount.touched}
+                invalidText={state.amount.invalidText}
+                onChange={(e) =>
+                  dispatch({ type: "amount", payload: e.target.value })
+                }
+                onBlur={(e) =>
+                  dispatch({ type: "amount", payload: e.target.value })
+                }
+              />
+            </>
+          ) : (
+            <Input
+              name="multipleExpenses"
+              title="Expenses Detail"
+              type="textarea"
+              required="true"
+              placeholder="name1(amount1),name2(amount2),...."
+              value={state.multiExpenses.value}
+              invalid={
+                state.multiExpenses.invalidText && state.multiExpenses.touched
+              }
+              invalidText={state.multiExpenses.invalidText}
+              onChange={(e) =>
+                dispatch({ type: "multiExpenses", payload: e.target.value })
+              }
+              onBlur={(e) =>
+                dispatch({ type: "multiExpenses", payload: e.target.value })
+              }
+            />
+          )}
           <Input
-            name="name"
-            title="Name"
-            required="true"
-            value={state.name.value}
-            invalid={state.name.invalidText && state.name.touched}
-            invalidText={state.name.invalidText}
+            name="date"
+            title="Date"
+            type="date"
+            value={state.date.value}
             onChange={(e) =>
-              dispatch({ type: "name", payload: e.target.value })
-            }
-            onBlur={(e) => dispatch({ type: "name", payload: e.target.value })}
-          />
-          <Input
-            name="amount"
-            type="number"
-            step="0.01"
-            title="Amount"
-            required="true"
-            value={state.amount.value}
-            invalid={state.amount.invalidText && state.amount.touched}
-            invalidText={state.amount.invalidText}
-            onChange={(e) =>
-              dispatch({ type: "amount", payload: e.target.value })
-            }
-            onBlur={(e) =>
-              dispatch({ type: "amount", payload: e.target.value })
+              dispatch({ type: "date", payload: e.target.value })
             }
           />
         </Modal>
@@ -300,7 +388,7 @@ const Label = (props) => {
           </h1>
         </Modal>
       )}
-      {/* Modals Ends */}
+      {/* MODAL ENDS HERE */}
 
       {/* Label Header starts */}
       <div className={classes.heading}>
@@ -327,7 +415,7 @@ const Label = (props) => {
       {/* Label Header ends */}
 
       <h1 className={classes.balance}>
-        YOUR BALANCE IS: Rs {props.label.budget - totalExpenseAmount}/-
+        YOUR BALANCE IS: Rs {+props.label.budget - totalExpenseAmount}/-
       </h1>
       <Card className={classes.card}>
         <div className={classes.card__title}>Budget</div>
@@ -353,7 +441,13 @@ const Label = (props) => {
       </Button>
 
       <div className={classes.history}>
-        {<h1 className={classes.history__title}>{transactions.length>0 ? "Transaction Details" : "No expenses found"}</h1>}
+        {
+          <h1 className={classes.history__title}>
+            {transactions.length > 0
+              ? "Transaction Details"
+              : "No expenses found"}
+          </h1>
+        }
         {transactions.map((transaction) => {
           return (
             <div
@@ -362,6 +456,12 @@ const Label = (props) => {
               onClick={() => transactionClickHandler(transaction)}
             >
               <h1 className={classes.history__item__name}>
+                <span style={{ color: "#ff5eff", marginRight: "1rem" }}>
+                  {new Date(transaction.createdAt).toLocaleDateString("en-us", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
                 {formatText(transaction.name)}
               </h1>
               <span className={classes.history__item__amount}>

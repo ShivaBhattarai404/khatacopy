@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const config = require('dotenv').config()
+const config = require("dotenv").config();
 
 const userRoutes = require("./routes/user");
 const expensesRoutes = require("./routes/expenses");
@@ -20,19 +20,16 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 
-
 app.use(userRoutes);
 app.use(expensesRoutes);
 
+app.use("/", (req, res) => {
+  res.status(200).json({ message: "Hello from the server" });
+});
 
-app.use("/", (req, res)=>{
-  res.status(200).json({message: "Hello from the server"})
-})
-
-
-app.use((req, res)=>{
-  res.status(404).json({message: "Requested URL not found on the server"});
-})
+app.use((req, res) => {
+  res.status(404).json({ message: "Requested URL not found on the server" });
+});
 
 app.use((err, req, res, next) => {
   const message = err.message || "Some Sever Error Occured";
@@ -42,14 +39,13 @@ app.use((err, req, res, next) => {
 });
 
 mongoose
-.connect(`${process.env.MONGODB_URI}` || "mongodb://127.0.0.1/expensesTracker")
-.then((result) => {
-  app.listen(process.env.PORT);
-})
-.catch((err) => {
+  .connect(process.env.MONGODB_URI)
+  .then((result) => {
+    app.listen(process.env.PORT);
+  })
+  .catch((err) => { 
     console.log(err.message);
     console.log("Connection to the database failed");
   });
-  
 
 module.exports = app;

@@ -10,6 +10,10 @@ const expenseSchema = new Schema({
         required: true,
         default: 0,
     },
-}, {timestamps: true})
+    createdAt: {
+        type: String,
+        default: new Date().toISOString(),
+    }
+},)
 
 module.exports = mongoose.model("Expenses", expenseSchema)

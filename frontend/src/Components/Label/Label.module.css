@@ -126,6 +126,10 @@
   font-size: 1.5rem;
   line-height: 1.55;
   text-decoration: none;
+
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
   color: rgb(193, 194, 197);
 }
 .history__item {

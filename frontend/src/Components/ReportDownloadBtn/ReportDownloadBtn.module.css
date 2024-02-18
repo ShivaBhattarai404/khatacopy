@@ -1,0 +1,24 @@
+@media (max-width: 1000px){
+    .btn button{
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+}
+@media (max-width: 800px){
+    .btn button{
+        font-size: 0.9rem;
+        padding: 0.5rem 0.9rem;
+    }
+}
+@media (max-width: 600px){
+    .btn button{
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+@media (max-width: 400px){
+    .btn button{
+        font-size: 0.6rem;
+        padding: 0.3rem 0.6rem;
+    }
+}

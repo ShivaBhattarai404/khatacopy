@@ -8,6 +8,7 @@ const Label = () => {
   const data = useLoaderData();
   return (
     <LabelComponent
+      data={data}
       expenses={data.expenses}
       label={data.label || { name: "", id: "" }}
     />

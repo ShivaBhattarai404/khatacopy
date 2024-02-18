@@ -38,8 +38,8 @@
   border-color: rgb(0, 100, 0);
 }
 .btn.peace {
-  background-color: blue;
-  border-color: blue;
+  background-color: #3d74ff;
+  border-color: #3d74ff;
   color: #ddd;
 }
 .btn.peace:hover {

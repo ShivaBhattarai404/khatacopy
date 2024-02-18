@@ -13,6 +13,7 @@ import Card from "../UI/Card/Card";
 import Button from "../UI/Button/Button";
 import Modal from "../UI/Modal/Modal";
 import Input from "../UI/Input/Input";
+import ReportDownloadBtn from "../ReportDownloadBtn/ReportDownloadBtn";
 
 function formatDate(date, format) {
   return format
@@ -148,7 +149,11 @@ const Label = (props) => {
     setAddExpenseModal((prevModal) => ({ ...prevModal, display: true }));
   };
   const addSingleExpenseHandler = (e) => {
-    if (addExpenseModal.mode === "single" && !state.name.value && state.amount.value <= 0) {
+    if (
+      addExpenseModal.mode === "single" &&
+      !state.name.value &&
+      state.amount.value <= 0
+    ) {
       setErrors({
         message:
           "1. Expense name should not be empty & 2. Expense amount should be greater than zero",
@@ -157,15 +162,17 @@ const Label = (props) => {
       setErrors({ message: "1. Expense name should not be empty" });
     } else if (addExpenseModal.mode === "single" && state.amount.value <= 0) {
       setErrors({ message: "1. Expense amount should be greater than zero" });
-    }else if(addExpenseModal.mode === "multiple" && state.multiExpenses.invalidText){
+    } else if (
+      addExpenseModal.mode === "multiple" &&
+      state.multiExpenses.invalidText
+    ) {
       setErrors({ message: state.multiExpenses.invalidText });
-    }
-    else {
+    } else {
       const formData = new FormData();
       formData.append("name", state.name.value);
       formData.append("amount", state.amount.value);
       formData.append("date", state.date.value);
-      formData.append("multipleExpenses", state.multiExpenses.value)
+      formData.append("multipleExpenses", state.multiExpenses.value);
       submit(formData, { method: "PUT", action: "/label/" + props.label.id });
       dispatch({ type: "reset" });
 
@@ -443,9 +450,20 @@ const Label = (props) => {
       <div className={classes.history}>
         {
           <h1 className={classes.history__title}>
-            {transactions.length > 0
-              ? "Transaction Details"
-              : "No expenses found"}
+            {transactions.length > 0 ? (
+              <>
+                <span>Transaction Details</span>
+                <ReportDownloadBtn
+                  data={props.data}
+                  filename={`expenses-report-${props.label.name.replace(
+                    " ",
+                    "-"
+                  )}-${props.label.id.slice(-5)}`}
+                />
+              </>
+            ) : (
+              "No expenses found"
+            )}
           </h1>
         }
         {transactions.map((transaction) => {

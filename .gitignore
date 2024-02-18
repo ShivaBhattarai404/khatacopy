@@ -12,7 +12,10 @@ node_modules/
 /coverage
 
 # production
-/build
+build/
+.firebase/
+.firebaserc
+firebase.json
 
 # misc
 .DS_Store
